@@ -212,9 +212,10 @@
       try{ localStorage.setItem('pm_lang', LANG); }catch(_){ }
     }
 
-    // Precompiled flat list provided by targets.js
-    let baseItems = Array.isArray(window.PM_ITEMS) ? window.PM_ITEMS.map(s=>String(s).trim()).filter(Boolean) : [];
-    const TRANSLATIONS = (window.PM_TRANSLATIONS || {});
+    // Normalized system defaults with translations (no duplication at runtime)
+    const baseDefaults = Array.isArray(window.PM_DEFAULTS)
+      ? window.PM_DEFAULTS.map(d=>({ id:String(d.id||''), en:String(d.en||'').trim(), et:d.et?String(d.et).trim():undefined }))
+      : [];
     const STORAGE_KEY = 'pm_custom_items_v1';
     const SETTINGS_KEY = 'pm_settings_v1';
     const DAY_STORAGE_KEY = 'pm_daily_v1';
@@ -294,7 +295,7 @@
       const status = document.getElementById('loadStatus');
       if(!status) return;
       const all = getAllItems();
-      const baseCount = includeBase ? baseItems.length : 0;
+      const baseCount = includeBase ? baseDefaults.length : 0;
       if(all.length >= 4){
         status.textContent = L.loaded(all.length, baseCount, userItems.length);
       } else if(all.length > 0){
@@ -305,7 +306,8 @@
     }
 
     function getAllItems(){
-      const pool = includeBase ? [...baseItems, ...userItems] : [...userItems];
+      const sys = includeBase ? baseDefaults.map(d=>d.en) : [];
+      const pool = [...sys, ...userItems];
       return Array.from(new Set(pool));
     }
 
@@ -368,8 +370,9 @@
         const row = document.createElement('div'); row.className='target';
         const text = document.createElement('div'); text.className='t-text';
         const title = document.createElement('b');
-        const isBase = baseItems.includes(t);
-        const tDisplay = (isBase && TRANSLATIONS[LANG] && TRANSLATIONS[LANG][t]) ? TRANSLATIONS[LANG][t] : t;
+        // If this string matches a system default in any language, render in current language
+        const match = baseDefaults.find(d=> d.en===t || (d.et && d.et===t) );
+        const tDisplay = match ? (LANG==='et' ? (match.et || match.en) : match.en) : t;
         title.textContent = tDisplay;
         text.appendChild(title);
         const badge = document.createElement('span'); badge.className='badge'; badge.textContent = `#${idx+1}`;
