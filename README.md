@@ -1,51 +1,37 @@
 Prospective Memory Trainer
 
-Live
+Daily reality‑check cues for lucid dreaming (MILD). Private by default, works offline.
 
-- GitHub Pages: https://ra13s.github.io/prospective-memory-trainer/
+Live app
 
-Overview
+- https://ra13s.github.io/prospective-memory-trainer/
 
-- Static, single-page app that picks 4 random targets from a flat list.
-- Base list in `targets.js` (`window.PM_ITEMS = [ ... ]`) plus your custom items (saved in localStorage).
-- No network, no server required. Fully offline capable.
-- UI auto-detects language (English/Estonian) from the browser or `?lang=et|en`. Only UI is translated; item texts are not altered.
- - Language selector in the header lets users switch between English and Estonian. Choice is saved in localStorage.
+What it does
 
-Quick start
+- Generates 4 random everyday cues to practice reality checks.
+- Add your own cues; keep or exclude the built‑in defaults.
+- Remembers today’s list so it doesn’t change on refresh.
+- Works fully offline; nothing is uploaded anywhere.
+- English/Estonian UI with a language selector (auto‑detects too).
 
-- Files: `index.html` and `targets.js`.
-- Open the HTML directly (file://) — it auto-loads `targets.js` and auto-generates a list if there are ≥ 4 items.
-- Click Generate to reshuffle anytime.
- - Change language via the selector (or URL `?lang=et|en`).
+How to use
 
-Edit targets
+- Open the link above and click Generate (it auto‑generates if there are ≥ 4 cues).
+- Add your own cues under “My items”. Toggle “Include default items” if you want only your list.
+- Import/Export lets you save or load your personal cues as JSON.
 
-- Update `targets.js` and set `window.PM_ITEMS = [ "The next time I …", "…" ];`
-- Add your own via the “My items” section; they persist in localStorage.
-- Need at least 4 total (base + custom) to generate a list.
- - Today’s generated list is saved in localStorage and restored on reload. Click Generate to reshuffle for today (overwrites today’s saved list).
+Offline use
 
-Import/Export custom items
+- Click the link above, then Save Page As (or download the repo ZIP).
+- Ensure `index.html` and `targets.js` are in the same folder; double‑click `index.html`.
+- Everything works without internet; your data stays in this browser.
 
-- Export: Click Export to download `my_targets.json` with `{ schema: "pm-items-v1", userItems: ["..."] }`.
-- Import: Click Import and select either a `["..."]` array or an object with `userItems`.
-- Import merges with your existing custom items and de-duplicates.
+Privacy
 
-Deploy to GitHub Pages
+- Your custom cues and today’s list are stored only in your browser’s localStorage.
+- No analytics, no trackers, no uploads — completely local.
 
-1. Create a new GitHub repo and add both files to the root.
-2. Commit and push.
-3. In the repo: Settings → Pages → Build and deployment → Source: `Deploy from a branch`.
-4. Select branch `main` (or `master`), folder `/ (root)`, Save.
-5. Wait for the page to publish; open the provided URL.
+For developers
 
-Suggested GitHub topics
-
-- lucid-dreaming, reality-checks, prospective-memory, mild, dream-signs, offline, privacy, webapp
-
-Notes
-
-- Since `targets.js` is a plain script, it loads under `file://` and on GitHub Pages with no extra steps.
-- Privacy: Data (custom items, today’s list) lives only in your browser’s localStorage and is never uploaded.
-- Offline: You can download the two files and open `index.html` without any server.
+- System defaults: `targets.js` exports `window.PM_DEFAULTS = [{ id, en, et }]`.
+- UI and content are static; publish these two files anywhere (e.g., GitHub Pages).
