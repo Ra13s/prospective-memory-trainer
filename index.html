@@ -117,7 +117,7 @@
       <header>
         <div>
           <h1 id="appTitle">Prospective Memory — Daily Targets</h1>
-          <div class="sub" id="subtitle">Four targets. First occurrence only. Random from your list.</div>
+          <div class="sub" id="subtitle">4 daily cues. Do a reality check the first time each happens.</div>
         </div>
         <div class="controls">
           <span class="sub" title="Local date">📅 <span id="todayLabel"></span></span>
@@ -150,6 +150,10 @@
       <input id="importFile" type="file" accept="application/json,.json" style="display:none" />
 
       <div class="note" id="privacyNote">Your data stays in this browser and is never uploaded. You can download these files and run offline.</div>
+      <details style="margin-top:12px;">
+        <summary class="sub" id="helpTitle">How it works</summary>
+        <div class="note" id="helpBody" style="margin-top:8px;"></div>
+      </details>
     </div>
   </div>
 
@@ -159,7 +163,7 @@
     const I18N = {
       en: {
         title: 'Prospective Memory — Daily Targets',
-        subtitle: 'Four targets. First occurrence only. Random from your list.',
+        subtitle: '4 daily cues. Do a reality check the first time each happens.',
         generate: 'Generate',
         import: 'Import',
         export: 'Export',
@@ -175,11 +179,21 @@
         customCount: (n)=>`${n} custom ${n===1?'item':'items'}`,
         remove: 'Remove',
         sourceNote: 'Add your own items below; nothing is uploaded anywhere.',
-        privacyNote: 'Your data stays in this browser and is never uploaded. You can download these files and run offline.'
+        privacyNote: 'Your data stays in this browser and is never uploaded. You can download these files and run offline.',
+        helpTitle: 'How it works',
+        helpHTML: (
+          '<ul style="margin:0; padding-left:18px;">'
+          + '<li>We pick 4 cues for today.</li>'
+          + '<li>When a cue happens <b>for the first time today</b>, do a reality check.</li>'
+          + '<li>Ignore later repeats of the same cue today (prevents fatigue).</li>'
+          + '<li>Add your own cues or use defaults — your choice.</li>'
+          + '<li>Tap “Mark done” once you do the check.</li>'
+          + '</ul>'
+        )
       },
       et: {
         title: 'Meelespidamise treening — Päevased olukorrad',
-        subtitle: 'Neli olukorda. Arvesse läheb esimene kord. Juhuslikult sinu nimekirjast.',
+        subtitle: '4 igapäevast olukorda. Tee reaalsuskontroll esimesel esinemisel.',
         generate: 'Genereeri',
         import: 'Impordi',
         export: 'Ekspordi',
@@ -196,7 +210,17 @@
         remove: 'Eemalda',
         includeDefaults: 'Kaasa vaikimisi olukorrad',
         sourceNote: 'Lisa oma üksused allpool; midagi ei saadeta üles.',
-        privacyNote: 'Sinu andmed jäävad sellesse brauserisse ega saadeta üles. Võid need failid alla laadida ja võrguühenduseta kasutada.'
+        privacyNote: 'Sinu andmed jäävad sellesse brauserisse ega saadeta üles. Võid need failid alla laadida ja võrguühenduseta kasutada.',
+        helpTitle: 'Kuidas see töötab',
+        helpHTML: (
+          '<ul style="margin:0; padding-left:18px;">'
+          + '<li>Valime täna 4 olukorda.</li>'
+          + '<li>Kui olukord <b>täna esimest korda</b> juhtub, tee reaalsuskontroll.</li>'
+          + '<li>Hilisemaid kordusi täna enam ei tee (väldib väsimust).</li>'
+          + '<li>Lisa oma olukordi või kasuta vaikimisi — sinu valik.</li>'
+          + '<li>Vajuta “Märgi tehtuks”, kui kontroll on tehtud.</li>'
+          + '</ul>'
+        )
       }
     };
     function detectLang(){
@@ -276,6 +300,8 @@
       el.sourceNote.textContent = L.sourceNote;
       el.privacyNote.textContent = L.privacyNote;
       el.includeBaseLabel.textContent = I18N[LANG].includeDefaults || 'Include default items';
+      document.getElementById('helpTitle').textContent = L.helpTitle;
+      document.getElementById('helpBody').innerHTML = L.helpHTML;
     }
 
     function setLanguage(code){
@@ -366,6 +392,7 @@
         el.targets.appendChild(p);
         return;
       }
+      const saved = loadSavedToday();
       list.forEach((t, idx)=>{
         const row = document.createElement('div'); row.className='target';
         const text = document.createElement('div'); text.className='t-text';
@@ -375,8 +402,22 @@
         const tDisplay = match ? (LANG==='et' ? (match.et || match.en) : match.en) : t;
         title.textContent = tDisplay;
         text.appendChild(title);
+        const meta = document.createElement('div'); meta.className='meta';
+        // status from saved (done/time)
+        const done = !!(saved && Array.isArray(saved.done) && saved.done[idx]);
+        const when = saved && Array.isArray(saved.times) && saved.times[idx] ? new Date(saved.times[idx]) : null;
+        if(done && when){ meta.textContent = (LANG==='et' ? `Tehtud kell ${when.toLocaleTimeString(LANG)}` : `Done at ${when.toLocaleTimeString(LANG)}`); }
+        text.appendChild(meta);
+
         const badge = document.createElement('span'); badge.className='badge'; badge.textContent = `#${idx+1}`;
-        row.appendChild(badge); row.appendChild(text);
+
+        const actions = document.createElement('div'); actions.className='status';
+        const btn = document.createElement('button'); btn.textContent = (LANG==='et' ? 'Märgi tehtuks' : 'Mark done');
+        if(done){ btn.disabled = true; }
+        btn.onclick = ()=> markDone(idx);
+
+        actions.appendChild(btn);
+        row.appendChild(badge); row.appendChild(text); row.appendChild(actions);
         el.targets.appendChild(row);
       });
     }
@@ -392,8 +433,21 @@
     }
     function saveTodayTargets(targets){
       try{
-        localStorage.setItem(DAY_STORAGE_KEY, JSON.stringify({ date: todayISO(), targets }));
+        localStorage.setItem(DAY_STORAGE_KEY, JSON.stringify({ date: todayISO(), targets, done: Array(targets.length).fill(false), times: Array(targets.length).fill(null) }));
       } catch(_){ /* ignore quota */ }
+    }
+
+    function markDone(idx){
+      const saved = loadSavedToday();
+      if(!saved || saved.date !== todayISO()) return;
+      if(!Array.isArray(saved.done) || !Array.isArray(saved.times)){
+        saved.done = Array(saved.targets.length).fill(false);
+        saved.times = Array(saved.targets.length).fill(null);
+      }
+      saved.done[idx] = true;
+      saved.times[idx] = Date.now();
+      try{ localStorage.setItem(DAY_STORAGE_KEY, JSON.stringify(saved)); }catch(_){ }
+      renderList(saved.targets);
     }
 
     function generateToday(){
