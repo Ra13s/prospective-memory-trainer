@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://ra13s.github.io/prospective-memory-trainer/" />
+  <meta name="description" content="Lucid dreaming trainer: generate daily reality‑check cues (prospective memory / MILD). Add your own, saves locally, works offline, no data upload." />
+  <meta name="keywords" content="lucid dreaming,reality check,MILD,prospective memory,LaBerge,dream signs,offline,privacy,daily cues,reality testing" />
+  <meta name="theme-color" content="#ffcc66" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://ra13s.github.io/prospective-memory-trainer/" />
+  <meta property="og:site_name" content="Prospective Memory Trainer" />
+  <meta property="og:title" content="Lucid Dreaming — Daily Reality‑Check Cues" />
+  <meta property="og:description" content="Generate daily cues to practice reality checks (prospective memory / MILD). Private by default, offline capable, customizable." />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale:alternate" content="et_EE" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Lucid Dreaming — Daily Reality‑Check Cues" />
+  <meta name="twitter:description" content="Daily reality‑check cues for lucid dreaming. Private, offline, customizable." />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Prospective Memory Trainer",
+    "alternateName": "Lucid Dreaming Reality‑Check Trainer",
+    "applicationCategory": "ProductivityApplication",
+    "operatingSystem": "Web",
+    "url": "https://ra13s.github.io/prospective-memory-trainer/",
+    "description": "Lucid dreaming trainer: generate daily reality‑check cues (prospective memory / MILD). Add your own, saves locally, works offline, no data upload.",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "featureList": [
+      "Lucid dreaming",
+      "Reality checks",
+      "Prospective memory",
+      "MILD",
+      "Offline support",
+      "Privacy‑respecting",
+      "Custom cues",
+      "Import/Export"
+    ]
+  }
+  </script>
+  <title id="titleTag">Prospective Memory — Daily Targets</title>
+  <style>
+    :root{
+      --sky1:#a8d8ff; --sky2:#8fc3f5;
+      --panel:#f4e7c6; --ink:#2b2b2b; --muted:#6b6b6b;
+      --grass1:#9cd66b; --grass2:#7fc25a; --soil:#8b5a2b;
+      --accent:#ffcc66; --accent-2:#ff9f1a; --danger:#de5246;
+      --tile:12px;
+    }
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: "Courier New", Consolas, Monaco, monospace;
+      font-size:16px; line-height:1.4;
+      color:var(--ink);
+      background:
+        repeating-linear-gradient(0deg, var(--sky1), var(--sky1) var(--tile), var(--sky2) var(--tile), var(--sky2) calc(var(--tile)*2));
+      display:flex; align-items:start; justify-content:center; padding:24px;
+    }
+    .app{ width:min(900px, 100%); }
+    .card{
+      position:relative; background:var(--panel);
+      border:4px solid #2a2a2a; border-radius:0;
+      box-shadow: 0 0 0 4px #fff inset, 0 6px 0 0 #2a2a2a, 6px 6px 0 0 #00000033;
+      /* extra top padding to avoid overlap with absolute language switch */
+      padding:56px 20px 20px;
+    }
+    header{ display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; }
+    h1{ font-size:22px; margin:0; letter-spacing:1px; text-transform:uppercase; }
+    .sub{ color:var(--muted); font-size:13px; }
+    .controls{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    button, .select, .input{
+      background:#ffeec4; color:var(--ink); border:3px solid #2a2a2a; border-radius:0;
+      padding:8px 12px; font:inherit; box-shadow: 0 3px 0 #2a2a2a; cursor:pointer;
+    }
+    .input{ background:#fff9e6; }
+    .select{ background:#fff3cc; }
+    button.primary{ background:var(--accent); border-color:#2a2a2a; box-shadow:0 3px 0 #2a2a2a; font-weight:700; }
+    button.ghost{ background:#fff3cc; }
+    button:active{ transform:translateY(2px); box-shadow:0 1px 0 #2a2a2a; }
+    button:disabled{ opacity:.6; cursor:not-allowed; }
+    .targets{ display:grid; grid-template-columns:1fr; gap:10px; margin-top:12px; }
+    .target{ display:flex; gap:10px; align-items:start; padding:12px; border:3px solid #2a2a2a; background:#fffdf4; }
+    .t-text{ flex:1 }
+    .t-text b{ display:block; margin-bottom:2px; font-weight:700 }
+    .badge{ font-size:12px; padding:2px 8px; border:3px solid #2a2a2a; background:#fff3cc; }
+    .meta{ color:var(--muted); font-size:12px; margin-top:6px; }
+    .note{ color:var(--muted); font-size:12px; margin-top:16px; }
+    .mini{ font-size:12px; }
+    .row{ display:flex; gap:8px; align-items:center; }
+    .list{ display:grid; gap:8px; margin-top:8px; }
+    .pill{ display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border:3px solid #2a2a2a; background:#fff9e6; }
+    .pill button{ border:0; background:transparent; color:var(--muted); cursor:pointer; }
+    .lang-switch{ position:absolute; top:10px; right:12px; }
+
+    /* Mobile tweaks to keep title clear of language selector */
+    @media (max-width: 520px){
+      .card{ padding-top:72px; }
+      h1{ font-size:18px; }
+      .select{ padding:6px 8px; }
+      .lang-switch{ top:8px; right:8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="card">
+      <div class="lang-switch">
+        <select id="langSelect" class="select" aria-label="Language">
+          <option value="en">English</option>
+          <option value="et">Eesti</option>
+        </select>
+      </div>
+      <header>
+        <div>
+          <h1 id="appTitle">Prospective Memory — Daily Targets</h1>
+          <div class="sub" id="subtitle">Four targets. First occurrence only. Random from your list.</div>
+        </div>
+        <div class="controls">
+          <span class="sub" title="Local date">📅 <span id="todayLabel"></span></span>
+          <button class="primary" id="generateBtn" title="Generate or refresh today’s four">Generate</button>
+          <button class="ghost mini" id="importBtn" title="Import custom items JSON">Import</button>
+          <button class="ghost mini" id="exportBtn" title="Export custom items JSON">Export</button>
+        </div>
+      </header>
+
+      <section id="targets" class="targets" aria-live="polite"></section>
+
+      <div class="note" id="loadStatus"></div>
+      <div class="note" id="sourceNote">Add your own items below; nothing is uploaded anywhere.</div>
+
+      <details style="margin-top:14px;">
+        <summary class="sub" id="myItemsLabel">My items</summary>
+        <div class="row" style="margin-top:8px;">
+          <input id="addInput" class="input" placeholder="Add a custom item (one at a time)" />
+          <button id="addBtn">Add</button>
+        </div>
+        <div class="row" style="margin-top:6px;">
+          <label class="sub" style="display:flex; align-items:center; gap:8px;">
+            <input id="includeBaseChk" type="checkbox" checked />
+            <span id="includeBaseLabel">Include default items</span>
+          </label>
+        </div>
+        <div class="note" id="customCount"></div>
+        <div id="customList" class="list"></div>
+      </details>
+      <input id="importFile" type="file" accept="application/json,.json" style="display:none" />
+
+      <div class="note" id="privacyNote">Your data stays in this browser and is never uploaded. You can download these files and run offline.</div>
+    </div>
+  </div>
+
+  <script src="targets.js"></script>
+  <script>
+    // Simple i18n (UI strings only). User items are never translated.
+    const I18N = {
+      en: {
+        title: 'Prospective Memory — Daily Targets',
+        subtitle: 'Four targets. First occurrence only. Random from your list.',
+        generate: 'Generate',
+        import: 'Import',
+        export: 'Export',
+        myItems: 'My items',
+        addPlaceholder: 'Add a custom item (one at a time)',
+        add: 'Add',
+        loaded: (all, base, custom)=>`Loaded ${all} items (${base} base + ${custom} custom).`,
+        onlyN: (n)=>`Only ${n} items loaded; need at least 4.`,
+        noneLoaded: 'No items yet. Add your own below to get started.',
+        clickGenerate: 'Click “Generate” to get today’s 4.',
+        needFour: 'Need at least 4 items (base + custom).',
+        exportBadJson: 'Invalid JSON file. Expecting {"userItems": ["..."]} or ["..."]',
+        customCount: (n)=>`${n} custom ${n===1?'item':'items'}`,
+        remove: 'Remove',
+        sourceNote: 'Add your own items below; nothing is uploaded anywhere.',
+        privacyNote: 'Your data stays in this browser and is never uploaded. You can download these files and run offline.'
+      },
+      et: {
+        title: 'Meelespidamise treening — Päevased olukorrad',
+        subtitle: 'Neli olukorda. Arvesse läheb esimene kord. Juhuslikult sinu nimekirjast.',
+        generate: 'Genereeri',
+        import: 'Impordi',
+        export: 'Ekspordi',
+        myItems: 'Minu olukorrad',
+        addPlaceholder: 'Lisa oma olukord (üks korraga)',
+        add: 'Lisa',
+        loaded: (all, base, custom)=>`Laetud ${all} kirjet (${base} vaikimisi + ${custom} oma).`,
+        onlyN: (n)=>`Laetud vaid ${n} kirjet; vaja vähemalt 4.`,
+        noneLoaded: 'Üksusi veel pole. Lisa allpool oma üksused ja alusta.',
+        clickGenerate: 'Klõpsa “Genereeri”, et saada tänase 4.',
+        needFour: 'Vaja on vähemalt 4 kirjet (vaikimisi + oma).',
+        exportBadJson: 'Vigane JSON. Oodatud {"userItems": ["..."]} või ["..."].',
+        customCount: (n)=>`${n} oma kirjet`,
+        remove: 'Eemalda',
+        includeDefaults: 'Kaasa vaikimisi olukorrad',
+        sourceNote: 'Lisa oma üksused allpool; midagi ei saadeta üles.',
+        privacyNote: 'Sinu andmed jäävad sellesse brauserisse ega saadeta üles. Võid need failid alla laadida ja võrguühenduseta kasutada.'
+      }
+    };
+    function detectLang(){
+      const qp = new URLSearchParams(location.search).get('lang');
+      const stored = localStorage.getItem('pm_lang');
+      const base = (qp || stored || navigator.language || 'en').slice(0,2).toLowerCase();
+      return I18N[base] ? base : 'en';
+    }
+    let LANG = detectLang();
+    let L = I18N[LANG];
+    document.documentElement.lang = LANG;
+    if(new URLSearchParams(location.search).has('lang')){
+      try{ localStorage.setItem('pm_lang', LANG); }catch(_){ }
+    }
+
+    // Precompiled flat list provided by targets.js
+    let baseItems = Array.isArray(window.PM_ITEMS) ? window.PM_ITEMS.map(s=>String(s).trim()).filter(Boolean) : [];
+    const TRANSLATIONS = (window.PM_TRANSLATIONS || {});
+    const STORAGE_KEY = 'pm_custom_items_v1';
+    const SETTINGS_KEY = 'pm_settings_v1';
+    const DAY_STORAGE_KEY = 'pm_daily_v1';
+    let userItems = [];
+    let includeBase = true;
+
+    const el = {
+      titleTag: document.getElementById('titleTag'),
+      appTitle: document.getElementById('appTitle'),
+      todayLabel: document.getElementById('todayLabel'),
+      langSelect: document.getElementById('langSelect'),
+      generateBtn: document.getElementById('generateBtn'),
+      exportBtn: document.getElementById('exportBtn'),
+      importBtn: document.getElementById('importBtn'),
+      addInput: document.getElementById('addInput'),
+      addBtn: document.getElementById('addBtn'),
+      customList: document.getElementById('customList'),
+      customCount: document.getElementById('customCount'),
+      myItemsLabel: document.getElementById('myItemsLabel'),
+      sourceNote: document.getElementById('sourceNote'),
+      privacyNote: document.getElementById('privacyNote'),
+      includeBaseChk: document.getElementById('includeBaseChk'),
+      includeBaseLabel: document.getElementById('includeBaseLabel'),
+      targets: document.getElementById('targets')
+    };
+    const importFile = document.getElementById('importFile');
+
+    function todayFriendly(){
+      const locale = LANG === 'en' ? 'en' : LANG; // use selected UI language
+      return new Date().toLocaleDateString(locale,{ weekday:'long', year:'numeric', month:'short', day:'numeric' });
+    }
+    function todayISO(){
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,'0');
+      const day = String(d.getDate()).padStart(2,'0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function pickRandom(arr, n){
+      const a = [...arr];
+      for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+      return a.slice(0, n);
+    }
+
+    // No network or file picker; items come from targets.js
+
+    function applyTranslations(){
+      el.titleTag.textContent = L.title;
+      el.appTitle.textContent = L.title;
+      document.getElementById('subtitle').textContent = L.subtitle;
+      el.generateBtn.textContent = L.generate;
+      el.importBtn.textContent = L.import;
+      el.exportBtn.textContent = L.export;
+      el.myItemsLabel.textContent = L.myItems;
+      el.addInput.placeholder = L.addPlaceholder;
+      el.addBtn.textContent = L.add;
+      el.sourceNote.textContent = L.sourceNote;
+      el.privacyNote.textContent = L.privacyNote;
+      el.includeBaseLabel.textContent = I18N[LANG].includeDefaults || 'Include default items';
+    }
+
+    function setLanguage(code){
+      if(!I18N[code]) return;
+      LANG = code; L = I18N[LANG];
+      document.documentElement.lang = LANG;
+      try{ localStorage.setItem('pm_lang', LANG); }catch(_){ }
+      applyTranslations();
+      updateLoadStatus();
+      const saved = loadSavedToday();
+      if(saved && saved.date === todayISO()){
+        renderList(saved.targets || []);
+      }
+    }
+
+    function updateLoadStatus(){
+      const status = document.getElementById('loadStatus');
+      if(!status) return;
+      const all = getAllItems();
+      const baseCount = includeBase ? baseItems.length : 0;
+      if(all.length >= 4){
+        status.textContent = L.loaded(all.length, baseCount, userItems.length);
+      } else if(all.length > 0){
+        status.textContent = L.onlyN(all.length);
+      } else {
+        status.textContent = L.noneLoaded;
+      }
+    }
+
+    function getAllItems(){
+      const pool = includeBase ? [...baseItems, ...userItems] : [...userItems];
+      return Array.from(new Set(pool));
+    }
+
+    function loadSettings(){
+      try{
+        const raw = localStorage.getItem(SETTINGS_KEY);
+        const data = raw ? JSON.parse(raw) : { includeBase: true };
+        includeBase = data && typeof data.includeBase === 'boolean' ? data.includeBase : true;
+      }catch(_){ includeBase = true; }
+    }
+    function saveSettings(){
+      try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({ includeBase })); }catch(_){ }
+    }
+
+    function loadUserItems(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const data = raw ? JSON.parse(raw) : { userItems: [] };
+        userItems = Array.isArray(data?.userItems) ? data.userItems.map(s=>String(s).trim()).filter(Boolean) : [];
+      }catch(_){ userItems = []; }
+    }
+    function saveUserItems(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ schema:'pm-items-v1', userItems }));
+      renderCustom(); updateLoadStatus();
+    }
+    function addUserItem(text){
+      const t = String(text||'').trim(); if(!t) return;
+      if(!userItems.includes(t)) userItems.push(t);
+      saveUserItems();
+    }
+    function removeUserItem(text){
+      userItems = userItems.filter(x=>x!==text);
+      saveUserItems();
+    }
+
+    function renderCustom(){
+      el.customCount.textContent = L.customCount(userItems.length);
+      el.customList.innerHTML = '';
+      userItems.forEach((t)=>{
+        const pill = document.createElement('div'); pill.className='pill';
+        const span = document.createElement('span'); span.textContent = t;
+        const del = document.createElement('button'); del.textContent='✕'; del.title=L.remove;
+        del.onclick = ()=> removeUserItem(t);
+        pill.appendChild(span); pill.appendChild(del);
+        el.customList.appendChild(pill);
+      });
+    }
+
+    function renderList(list){
+      el.todayLabel.textContent = todayFriendly();
+      el.targets.innerHTML = '';
+      if(!list || list.length === 0){
+        const p = document.createElement('p');
+        p.className = 'sub';
+        p.textContent = L.clickGenerate;
+        el.targets.appendChild(p);
+        return;
+      }
+      list.forEach((t, idx)=>{
+        const row = document.createElement('div'); row.className='target';
+        const text = document.createElement('div'); text.className='t-text';
+        const title = document.createElement('b');
+        const isBase = baseItems.includes(t);
+        const tDisplay = (isBase && TRANSLATIONS[LANG] && TRANSLATIONS[LANG][t]) ? TRANSLATIONS[LANG][t] : t;
+        title.textContent = tDisplay;
+        text.appendChild(title);
+        const badge = document.createElement('span'); badge.className='badge'; badge.textContent = `#${idx+1}`;
+        row.appendChild(badge); row.appendChild(text);
+        el.targets.appendChild(row);
+      });
+    }
+
+    function loadSavedToday(){
+      try{
+        const raw = localStorage.getItem(DAY_STORAGE_KEY);
+        if(!raw) return null;
+        const data = JSON.parse(raw);
+        if(data && data.date && Array.isArray(data.targets)) return data;
+      } catch(_){ /* ignore */ }
+      return null;
+    }
+    function saveTodayTargets(targets){
+      try{
+        localStorage.setItem(DAY_STORAGE_KEY, JSON.stringify({ date: todayISO(), targets }));
+      } catch(_){ /* ignore quota */ }
+    }
+
+    function generateToday(){
+      const pool = getAllItems();
+      if(!Array.isArray(pool) || pool.length < 4){
+        alert(L.needFour);
+        return;
+      }
+      const targets = pickRandom(pool, 4);
+      saveTodayTargets(targets);
+      renderList(targets);
+    }
+
+    // Events
+    el.generateBtn.addEventListener('click', generateToday);
+    el.langSelect.addEventListener('change', ()=> setLanguage(el.langSelect.value));
+    el.includeBaseChk.addEventListener('change', ()=>{
+      includeBase = !!el.includeBaseChk.checked;
+      saveSettings();
+      updateLoadStatus();
+      // Re-assess ability to generate with current pool
+      el.generateBtn.disabled = getAllItems().length < 4;
+    });
+    el.addBtn.addEventListener('click', ()=>{ addUserItem(el.addInput.value); el.addInput.value=''; });
+    el.addInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); el.addBtn.click(); }});
+    el.exportBtn?.addEventListener('click', ()=>{
+      const blob = new Blob([JSON.stringify({ schema:'pm-items-v1', userItems }, null, 2)], { type:'application/json' });
+      const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='my_targets.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    });
+    el.importBtn?.addEventListener('click', ()=> importFile.click());
+    importFile.addEventListener('change', (e)=>{
+      const file = e.target.files?.[0]; if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        try{
+          const text = String(reader.result||'');
+          const data = JSON.parse(text);
+          let incoming = [];
+          if(Array.isArray(data)) incoming = data;
+          else if(data && Array.isArray(data.userItems)) incoming = data.userItems;
+          incoming = incoming.map(s=>String(s).trim()).filter(Boolean);
+          const set = new Set([...userItems, ...incoming]);
+          userItems = Array.from(set);
+          saveUserItems();
+        }catch(err){ alert(L.exportBadJson); }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    });
+
+    // Boot
+    applyTranslations();
+    // Initialize language select to current
+    if(el.langSelect) el.langSelect.value = LANG;
+    loadSettings();
+    if(el.includeBaseChk) el.includeBaseChk.checked = includeBase;
+    loadUserItems();
+    renderCustom();
+    updateLoadStatus();
+    const saved = loadSavedToday();
+    if(saved && saved.date === todayISO() && Array.isArray(saved.targets) && saved.targets.length >= 1){
+      renderList(saved.targets);
+      el.generateBtn.disabled = getAllItems().length < 4;
+    } else {
+      const initialPool = getAllItems();
+      if(initialPool.length >= 4){
+        generateToday();
+        el.generateBtn.disabled = false;
+      } else {
+        el.generateBtn.disabled = true;
+        renderList([]);
+      }
+    }
+  </script>
+</body>
+</html>
